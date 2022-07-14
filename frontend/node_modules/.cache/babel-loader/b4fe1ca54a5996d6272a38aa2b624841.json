@@ -1,0 +1,1 @@
+{"ast":null,"code":"var util = require('util');\n\nvar ValueError = function (message) {\n  Error.call(this);\n  Error.captureStackTrace(this, this.constructor);\n  this.name = 'ValueError';\n  this.message = message;\n};\n\nutil.inherits(ValueError, Error);\nmodule.exports = ValueError;","map":null,"metadata":{},"sourceType":"script"}

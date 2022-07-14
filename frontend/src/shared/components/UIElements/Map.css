@@ -1,0 +1,13 @@
+.map  { 
+    width: 100%;
+    height: 100%;   
+}
+.input {
+    width: auto;
+    height: 3%;
+    position: fixed;
+    z-index: 999;
+    top: auto;
+    left: 45%;
+    text-align: auto;  
+}

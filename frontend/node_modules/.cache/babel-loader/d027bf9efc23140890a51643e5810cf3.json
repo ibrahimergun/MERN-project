@@ -1,0 +1,1 @@
+{"ast":null,"code":"'use strict';\n\nconst GeocoderFactory = require('./lib/geocoderfactory.js');\n\nconst Exports = GeocoderFactory.getGeocoder.bind(GeocoderFactory);\nmodule.exports = Exports;","map":null,"metadata":{},"sourceType":"script"}

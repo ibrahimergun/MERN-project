@@ -1,0 +1,1 @@
+{"ast":null,"code":"'use strict';\n/**\n* Helper object\n*/\n\nvar Helper = {\n  isString: function (testVar) {\n    return typeof testVar === 'string' || testVar instanceof String;\n  }\n};\nmodule.exports = Helper;","map":null,"metadata":{},"sourceType":"script"}
