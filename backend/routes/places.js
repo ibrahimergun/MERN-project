@@ -10,17 +10,19 @@ router.get('/users/:uid', placesControllers.getUserByUserId);
 
 router.post(
   '/',
-  [check('title').not().isEmpty(),
+  [
+    check('title').not().isEmpty(),
     check('description').isLength({ min: 5 }),
     check('address').not().isEmpty(),
+    check('creator').not().isEmpty(),
   ],
-  placesControllers.postUserByUserId
+  placesControllers.postUserByUserId,
 );
 
 router.patch(
   '/:pid',
   [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
-  placesControllers.updatePlaceById
+  placesControllers.updatePlaceById,
 );
 
 router.delete('/:pid', placesControllers.deletePlaceId);

@@ -1,7 +1,8 @@
 const httpError = require('../models/http-error');
 const { validationResult } = require('express-validator');
 const getCoordsForAddress = require('../util/location');
-const uuid = require('uuid');
+
+const Place = require('../models/place');
 
 let DUMMY_DATAS = [
   {
@@ -66,34 +67,53 @@ let DUMMY_DATAS = [
   },
 ];
 
-const getUserById = (req, res, next) => {
+const getUserById = async (req, res, next) => {
   const placeId = req.params.pid;
-  const place = DUMMY_DATAS.filter((p) => p.id === placeId);
-
-  if (place.length === 0) {
-    throw new httpError('Could not find a place for the provided Id', 404);
+  let place;
+  try {
+    place = await Place.findById(placeId);
+  } catch (err) {
+    return next(
+      new httpError('Something went wrong, could not find a place', 500),
+    );
   }
 
-  res.json({ place });
+  if (place.length === 0) {
+    return next(
+      new httpError('Could not find a place for the provided Id', 404),
+    );
+  }
+  res.json(place.toObject({ getters: true }));
 };
 
-const getUserByUserId = (req, res, next) => {
+const getUserByUserId = async (req, res, next) => {
   const userId = req.params.uid;
-  const userPlace = DUMMY_DATAS.filter((p) => p.creator === userId);
+  let userPlace;
+  try {
+    userPlace = await Place.find({ creator: userId });
+  } catch (err) {
+    return next(
+      new httpError('Could not find a place for the provided User Id', 500),
+    );
+  }
 
   if (userPlace.length === 0) {
     return next(
       new httpError('Could not find a place for the provided user Id', 404),
     );
   }
-  res.json({ userPlace });
+  res.json({
+    userPlace: userPlace.map((place) => place.toObject({ getters: true })),
+  });
 };
 
-const postUserByUserId = async(req, res, next) => {
+const postUserByUserId = async (req, res, next) => {
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
-    throw new httpError('Invalid inputs passed, please check your data.', 422);
+    return next(
+      new httpError('Invalid inputs passed, please check your data.', 422),
+    );
   }
 
   const { title, description, address, creator } = req.body;
@@ -103,23 +123,30 @@ const postUserByUserId = async(req, res, next) => {
     coordinates = await getCoordsForAddress(address);
   } catch (error) {
     return next(error);
-  };
+  }
 
-  const createdPlace = {
-    id: uuid.v4(),
+  const createdPlace = new Place({
     title,
     description,
     location: coordinates,
+    imageUrl: 'https://picsum.photos/501/300',
     address,
     creator,
-  };
+  });
 
-  DUMMY_DATAS.push(createdPlace);
-
+  try {
+    await createdPlace.save();
+  } catch (err) {
+    const error = new httpError(
+      'Creating place failed, please try again.',
+      500,
+    );
+    return next(error);
+  }
   res.status(201).json({ place: createdPlace });
 };
 
-const updatePlaceById = (req, res, next) => {
+const updatePlaceById = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     throw new httpError('Invalid inputs passed, please check your data.', 422);
@@ -127,23 +154,39 @@ const updatePlaceById = (req, res, next) => {
 
   const placeId = req.params.pid;
   const { title, description, address } = req.body;
+  let updatedPlace;
 
-  const updatedPlace = { ...DUMMY_DATAS.find((p) => p.id === placeId) };
-  const indexPlace = DUMMY_DATAS.findIndex((p) => p.id === placeId);
+  try {
+    updatedPlace = await Place.findById(placeId);
+  } catch (err) {
+    return next(
+      new httpError('Could not find a place for the provided Id', 500),
+    );
+  }
+
+  //findbyidandupdate function can be use.
 
   updatedPlace.title = title;
   updatedPlace.description = description;
   updatedPlace.address = address;
 
-  DUMMY_DATAS[indexPlace] = updatedPlace;
+  try {
+    await updatedPlace.save();
+  } catch (err) {
+    const error = new httpError(
+      'Updating place failed, please try again.',
+      500,
+    );
+    return next(error);
+  }
 
-  res.status(200).json({ place: updatedPlace });
+  res.status(200).json({ place: updatedPlace.toObject({ getters: true }) });
 };
 
 const deletePlaceId = (req, res, next) => {
   const placeId = req.params.pid;
 
-  if (!DUMMY_DATAS.find(p => p.id === placeId)) {
+  if (!DUMMY_DATAS.find((p) => p.id === placeId)) {
     throw new httpError('Could not find a place for that id.', 404);
   }
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const httpError = require('./models/http-error');
+const mongoose = require('mongoose');
 
 const placesRoute = require('./routes/places');
 const usersRoute = require('./routes/users');
@@ -14,14 +15,14 @@ app.use('/api/places', placesRoute);
 app.use('/api/users', usersRoute);
 
 app.use((req, res, next) => {
-  console.log('3');
+  
   const error = new httpError('Could not found this route.', 404);
   throw error;
 });
 
 app.use((error, req, res, next) => {
   //optional
-  console.log('4');
+
   if (res.headerSent) {
     return next(error);
   }
@@ -31,4 +32,11 @@ app.use((error, req, res, next) => {
 
 //app.use('/users', usersRoute);
 
-app.listen(5000);
+mongoose
+  .connect('mongodb+srv://ibrahim:Ibrahim19.@cluster0.1chw7.mongodb.net/Places?retryWrites=true&w=majority')
+  .then(() => {
+    app.listen(5000);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
