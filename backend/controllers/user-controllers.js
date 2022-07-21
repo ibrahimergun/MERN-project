@@ -1,79 +1,97 @@
 const { validationResult } = require('express-validator');
+const user = require('../models/user');
 
 const httpError = require('../models/http-error');
-const uuid = require('uuid');
 
-const DUMMY_USERS = [
-  {
-    id: 'u2',
-    name: 'Max Schwarz',
-    email: 'test@test.com',
-    password: 'testers',
-  },
-  {
-    id: 'u1',
-    name: 'Max Schwarz',
-    email: 'test@test.com',
-    password: 'testers',
-  },
-  {
-    id: 'u4',
-    name: 'Max Schwarz',
-    email: 'test@test.com',
-    password: 'testers',
-  },
-  {
-    id: 'u3',
-    name: 'Max Schwarz',
-    email: 'test@test.com',
-    password: 'testers',
-  },
-];
-
-const getUsers = (req, res, next) => {
-  res.json({ users: DUMMY_USERS });
+const getUsers = async (req, res, next) => {
+  let users;
+  try {
+    users = await user.find({}, '-password');
+  } catch (err) {
+    return next(
+      new httpError('Something went wrong, could not find a users', 500),
+    );
+  }
+  if (users.length === 0) {
+    return next(new httpError('Could not find the any user', 404));
+  }
+  res.json({ users: users });
 };
-const signup = (req, res, next) => {
+
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    throw new httpError('Invalid inputs passed, please check your data.', 422);
+    return next(
+      new httpError('Invalid inputs passed, please check your data.', 422),
+    );
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password} = req.body;
 
-  const hasName = DUMMY_USERS.find((prevValue) => prevValue.email === email);
-  if (hasName) {
-    throw new httpError('Could not create user, email is already exists.', 422);
+  const hasEmail = await user.findOne({ email: email });
+
+  if (hasEmail) {
+    const error = new httpError(
+      'Could not create user, email is already exists.',
+      422,
+    );
+    return next(error);
   }
 
-  const createUser = {
-    id: uuid.v4(),
+  const createUser = new user({
     name,
     email,
     password,
-  };
+    places: [],
+    imageUrl: 'https://picsum.photos/501/302',
+  });
 
-  DUMMY_USERS.push(createUser);
+  try {
+    await createUser.save();
+  } catch (err) {
+    const error = new httpError('Creating user failed, please try again.', 500);
+    return next(error);
+  }
   res.status(201).json({ user: createUser });
 };
 
-const login = (req, res, next) => {
-  
-    const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    throw new httpError('Invalid inputs passed, please check your data.(Input value is not valid)', 422);
-  }
-
+const login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  const validity = DUMMY_USERS.find((e) => e.email === email);
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return next(
+      new httpError(
+        'Invalid inputs passed, please check your data.(Input value is not valid)',
+        422,
+      ),
+    );
+  }
+
+  let checkUserEmail;
+  try {
+    checkUserEmail = await user.findOne({ email: email });
+  } catch (err) {
+    return next(new httpError('Please try again later', 500));
+  }
+  if (!checkUserEmail) {
+    const error = new httpError(
+      'Could not find the user, you must firsty Signup.',
+      422,
+    );
+    return next(error);
+  }
+
+  const validity =await user.findOne({ email: email });
 
   if (!validity || validity.password !== password) {
-    throw new httpError(
-      'Could not identify user, credentials seem to be wrong.',
-      401,
+    return next(
+      new httpError(
+        'Could not identify user, credentials seem to be wrong.',
+        401,
+      ),
     );
   }
 
