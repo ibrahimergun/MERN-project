@@ -10,12 +10,21 @@ const app = express();
 
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    '*'
+  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+  next();
+});
+
 app.use('/api/places', placesRoute);
 
 app.use('/api/users', usersRoute);
 
 app.use((req, res, next) => {
-  
   const error = new httpError('Could not found this route.', 404);
   throw error;
 });
@@ -33,7 +42,9 @@ app.use((error, req, res, next) => {
 //app.use('/users', usersRoute);
 
 mongoose
-  .connect('mongodb+srv://ibrahim:Ibrahim19.@cluster0.1chw7.mongodb.net/Places?retryWrites=true&w=majority')
+  .connect(
+    'mongodb+srv://ibrahim:Ibrahim19.@cluster0.1chw7.mongodb.net/Places?retryWrites=true&w=majority',
+  )
   .then(() => {
     app.listen(5000);
   })

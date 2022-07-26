@@ -17,8 +17,7 @@ import LoginContext from './shared/context/Login-Context';
 
 const App = () => {
   var { isLoggedIn } = useContext(LoginContext);
-  console.log(isLoggedIn);
-
+  
   let routes;
 
   if (isLoggedIn) {

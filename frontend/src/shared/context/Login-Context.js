@@ -11,13 +11,13 @@ export default LoginContext;
 export const AuthContextProvider = (props) => {
   const [isLogin, setIsLogin] = useState(false);
 
-  const loginHandler = useCallback (() => {
+  const loginHandler = useCallback(() => {
     setIsLogin(true);
-  },[]);
-  
-  const logoutHandler = useCallback (() => {
+  }, []);
+
+  const logoutHandler = useCallback(() => {
     setIsLogin(false);
-  },[]);
+  }, []);
 
   const contextValue = {
     isLoggedIn: isLogin,
