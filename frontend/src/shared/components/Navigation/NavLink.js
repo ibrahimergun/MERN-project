@@ -6,7 +6,10 @@ import LoginContext from '../../context/Login-Context';
 
 const NavLinks = (props) => {
   let { isLoggedIn, logout } = useContext(LoginContext);
-  
+
+  const logoutHandler = () => {
+    logout();
+  };
 
   return (
     <ul className='nav-links'>
@@ -26,7 +29,7 @@ const NavLinks = (props) => {
         </li>
       )}
       <li>
-        <NavLink to={isLoggedIn ? '/forward' : '/auth'} onClick={logout}>
+        <NavLink to='/auth' onClick={logoutHandler}>
           {isLoggedIn ? 'Logout' : 'Login'}
         </NavLink>
       </li>

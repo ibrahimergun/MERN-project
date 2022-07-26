@@ -60,6 +60,7 @@ const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   const errors = validationResult(req);
+  //console.log(req);
 
   if (!errors.isEmpty()) {
     return next(
