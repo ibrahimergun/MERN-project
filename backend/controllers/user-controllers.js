@@ -44,7 +44,7 @@ const signup = async (req, res, next) => {
     email,
     password,
     places: [],
-    imageUrl: 'https://picsum.photos/501/302',
+    imageUrl: req.file.path,
   });
 
   try {

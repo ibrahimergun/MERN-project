@@ -9,6 +9,7 @@ import Input from '../../shared/components/FormElements/Input';
 import { useHttpClient } from '../../shared/hook/http-hook';
 import Button from '../../shared/components/FormElements/Button.js';
 import { useForm } from '../../shared/hook/form-hook';
+import ImageUpload from '../../shared/components/FormElements/imageUpload';
 
 import {
   VALIDATOR_MINLENGTH,
@@ -34,26 +35,24 @@ const NewPlace = () => {
         value: '',
         isValid: false,
       },
+      image: {
+        value: null,
+        isValid: false,
+      },
     },
     false,
   );
 
   const submitHandler = async (event) => {
     event.preventDefault();
+    const formData = new FormData();
+    formData.append('title', formState.inputs.title.value);
+    formData.append('description', formState.inputs.description.value);
+    formData.append('address', formState.inputs.address.value);
+    formData.append('image', formState.inputs.image.value);
+    formData.append('creator', uid);
 
-    await sendRequest(
-      'http://localhost:5000/api/places/',
-      'POST',
-      {
-        title: formState.inputs.title.value,
-        description: formState.inputs.description.value,
-        address: formState.inputs.address.value,
-        creator: uid,
-      },
-      {
-        'content-type': 'application/json',
-      },
-    )
+    await sendRequest('http://localhost:5000/api/places/', 'POST', formData)
       .then(successfulResponse)
       .catch(error);
 
@@ -77,6 +76,7 @@ const NewPlace = () => {
           validators={[VALIDATOR_REQUIRE()]}
           errorText='Please enter a valid title'
         />
+        <ImageUpload center id='image' onInput={inputHandler} />
         <Input
           onInput={inputHandler}
           id='description'

@@ -14,7 +14,6 @@ import UpdatePlace from './places/pages/UpdatePlace';
 import Auth from './user/pages/Auth';
 import LoginContext from './shared/context/Login-Context';
 
-
 const App = () => {
   var { isLoggedIn } = useContext(LoginContext);
   

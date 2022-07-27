@@ -7,7 +7,8 @@ import { useHttpClient } from '../../shared/hook/http-hook';
 import PlaceList from '../components/PlaceList';
 
 const UserPlaces = () => {
-  const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
+  //const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient(); //with errorMessage
+  const { sendRequest, errorHandler, loading } = useHttpClient();
   const [places, setPlaces] = useState([]);
 
   const UserId = useParams().UserId;
@@ -32,7 +33,9 @@ const UserPlaces = () => {
 
   return (
     <React.Fragment>
-      <ErrorModal error={errorMessage} onClear={errorHandler} />
+      {/* //With error message */}
+      {/* <ErrorModal error={errorMessage} onClear={errorHandler} /> */}
+      <ErrorModal  onClear={errorHandler} />
       {loading && (
         <div className='center'>
           <LoadingSpinner asOverlay />

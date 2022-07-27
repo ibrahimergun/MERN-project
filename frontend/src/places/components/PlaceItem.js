@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import {useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import Card from '../../shared/components/UIElements/Card.js';
 import Button from '../../shared/components/FormElements/Button.js';
@@ -14,7 +14,7 @@ import './PlaceItem.css';
 
 const PlaceItem = (props) => {
   const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
-  let { isLoggedIn, uid } = useContext(LoginContext);
+  let { uid } = useContext(LoginContext);
 
   const [showMap, setShowMap] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -45,9 +45,13 @@ const PlaceItem = (props) => {
   const confirmDeleteHandler = async (event) => {
     event.preventDefault();
     setShowConfirmModal(false);
-    await sendRequest('http://localhost:5000/api/places/' + props.id, 'DELETE', {
-      'content-type': 'application/json',
-    })
+    await sendRequest(
+      'http://localhost:5000/api/places/' + props.id,
+      'DELETE',
+      {
+        'content-type': 'application/json',
+      },
+    )
       .then(successfulResponse)
       .catch(error);
 
@@ -76,16 +80,16 @@ const PlaceItem = (props) => {
   if (loading) {
     return (
       <div className='center'>
-        <LoadingSpinner asOverlay/>
+        <LoadingSpinner asOverlay />
       </div>
     );
-  };
+  }
 
   return (
     <React.Fragment>
-    <ErrorModal error={errorMessage} onClear={errorHandler} />
+      <ErrorModal error={errorMessage} onClear={errorHandler} />
 
-    <Modal
+      <Modal
         show={showMap}
         onCancel={closeMapHandler}
         header={address}
@@ -136,7 +140,10 @@ const PlaceItem = (props) => {
       <li className='place-item'>
         <Card className='place-item__content'>
           <div className='place-item__image'>
-            <img src={props.image} alt={props.title} />
+            <img
+              src={`http://localhost:5000/${props.image}`}
+              alt={props.title}
+            />
           </div>
           <div className='place-item__info'>
             <h2>{props.title}</h2>
@@ -147,15 +154,17 @@ const PlaceItem = (props) => {
             <Button inverse onClick={openMapHandler}>
               VIEW ON MAP
             </Button>
-            {isLoggedIn && <Button to={`/places/${props.id}`}>EDIT</Button>}
-            {isLoggedIn && (
+            {uid === props.creatorID && (
+              <Button to={`/places/${props.id}`}>EDIT</Button>
+            )}
+            {uid === props.creatorID && (
               <Button onClick={showConfirmHandler} danger>
                 DELETE
               </Button>
             )}
           </div>
         </Card>
-      </li> 
+      </li>
     </React.Fragment>
   );
 };

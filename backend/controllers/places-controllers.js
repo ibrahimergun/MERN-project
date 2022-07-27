@@ -2,6 +2,7 @@ const httpError = require('../models/http-error');
 const { validationResult } = require('express-validator');
 const getCoordsForAddress = require('../util/location');
 const mongoose = require('mongoose');
+const fs = require('fs');
 
 const Place = require('../models/place');
 const User = require('../models/user');
@@ -74,7 +75,7 @@ const postUserByUserId = async (req, res, next) => {
     title,
     description,
     location: coordinates,
-    imageUrl: 'https://picsum.photos/501/300',
+    imageUrl: req.file.path,
     address,
     creator,
   });
@@ -122,7 +123,7 @@ const updatePlaceById = async (req, res, next) => {
   }
 
   const placeId = req.params.pid;
-  const { title, description} = req.body;
+  const { title, description, address } = req.body;
   let updatedPlace;
 
   try {
@@ -137,7 +138,7 @@ const updatePlaceById = async (req, res, next) => {
 
   updatedPlace.title = title;
   updatedPlace.description = description;
-  
+  updatedPlace.address = address;
 
   try {
     await updatedPlace.save();
@@ -154,7 +155,6 @@ const updatePlaceById = async (req, res, next) => {
 
 const deletePlaceId = async (req, res, next) => {
   const placeId = req.params.pid;
-  console.log(req);
   let removedPlace, place;
 
   try {
@@ -172,6 +172,8 @@ const deletePlaceId = async (req, res, next) => {
     return next(error);
   }
 
+  const imagePath = place.imageUrl;
+  
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -182,8 +184,11 @@ const deletePlaceId = async (req, res, next) => {
   } catch (err) {
     const error = new httpError('Could not delete.Something went wrong', 500);
     return next(error);
-  }
+  };
 
+  //Unlink equalto Delete or Remove
+  fs.unlink(imagePath, (error) => {});
+  
   res
     .status(200)
     .json({ message: 'Deleted place.', removedData: removedPlace });

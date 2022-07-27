@@ -16,6 +16,7 @@ import Input from '../../shared/components/FormElements/Input';
 import { useForm } from '../../shared/hook/form-hook';
 import Card from '../../shared/components/UIElements/Card';
 import LoginContext from '../../shared/context/Login-Context';
+import ImageUpload from '../../shared/components/FormElements/imageUpload';
 
 const Auth = () => {
   let history = useHistory();
@@ -43,6 +44,7 @@ const Auth = () => {
         {
           ...formState.inputs,
           name: undefined,
+          image: undefined,
         },
         formState.inputs.email.isValid && formState.inputs.password.isValid,
       );
@@ -52,6 +54,10 @@ const Auth = () => {
           ...formState.inputs,
           name: {
             value: '',
+            isValid: false,
+          },
+          image: {
+            value: null,
             isValid: false,
           },
         },
@@ -85,18 +91,16 @@ const Auth = () => {
       }
       function error(error) {}
     } else {
+      const formData = new FormData();
+      formData.append('name', formState.inputs.name.value);
+      formData.append('email', formState.inputs.email.value);
+      formData.append('password', formState.inputs.password.value);
+      formData.append('image', formState.inputs.image.value);
+
       await sendRequest(
         'http://localhost:5000/api/users/signup',
         'POST',
-        {
-          name: formState.inputs.name.value,
-          email: formState.inputs.email.value,
-          password: formState.inputs.password.value,
-        },
-
-        {
-          'content-type': 'application/json',
-        },
+        formData,
       )
         .then(succesfullResponse)
         .catch(error);
@@ -126,6 +130,9 @@ const Auth = () => {
               onInput={inputHandler}
               value=''
             />
+          )}
+          {!isLoginMode && (
+            <ImageUpload center id='image' onInput={inputHandler} />
           )}
           <Input
             id='email'
