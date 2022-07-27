@@ -10,6 +10,8 @@ const app = express();
 
 app.use(bodyParser.json());
 
+
+//For CORS Error
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
@@ -20,10 +22,13 @@ app.use((req, res, next) => {
   next();
 });
 
+//For Place Route
 app.use('/api/places', placesRoute);
 
+//For User Route
 app.use('/api/users', usersRoute);
 
+//For any error
 app.use((req, res, next) => {
   const error = new httpError('Could not found this route.', 404);
   throw error;
@@ -49,5 +54,5 @@ mongoose
     app.listen(5000);
   })
   .catch((err) => {
-    console.log(err);
+    //console.log(err);
   });

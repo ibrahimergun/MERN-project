@@ -1,56 +1,49 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import { useHttpClient } from '../../shared/hook/http-hook';
 
 import PlaceList from '../components/PlaceList';
 
-const DUMMY_DATAS = [
-  {
-    id: 'p1',
-    title: 'Empire State Building',
-    description: 'One of the most famous sky scrapers in the world!',
-    imageUrl: 'https://picsum.photos/500/300',
-    address: 'Kale Mah. 1. Meram Sok. No:12/2 Corum/Merkez 19100',
-    // coordinates: {
-    //   lat: 40.7484405,
-    //   lng: -73.9878584,
-    // },
-    creatorID: 'u1',
-  },
-  {
-    id: 'p1',
-    title: 'Empire State Building',
-    description: 'One of the most famous sky scrapers in the world!',
-    imageUrl: 'https://picsum.photos/501/300',
-    address: '20 W 34th St, New York, NY 10001',
-    // coordinates: {
-    //   lat: 40.7484405,
-    //   lng: -73.9878584,
-    // },
-    creatorID: 'u2',
-  },
-  {
-    id: 'p1',
-    title: 'Empire State Building',
-    description: 'One of the most famous sky scrapers in the world!',
-    imageUrl: 'https://picsum.photos/501/301',
-    address: '20 W 34th St, New York, NY 10001',
-    // coordinates: {
-    //   lat: 40.7484405,
-    //   lng: -73.9878584,
-    // },
-    creatorID: 'u2',
-  },
-];
-
 const UserPlaces = () => {
-  
+  const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
+  const [places, setPlaces] = useState([]);
+
   const UserId = useParams().UserId;
 
-  const filteredPlaces = DUMMY_DATAS.filter(
-    (place) => place.creatorID === UserId,
-  );
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await sendRequest(
+          'http://localhost:5000/api/places/users/' + UserId,
+        );
+        setPlaces(response.userPlace);
+      } catch (error) {}
+    };
+    fetchUsers();
+  }, [UserId, sendRequest]);
 
-  return <PlaceList items={filteredPlaces} />;
+  const placeDeletedHandler = (deletedId) => {
+    setPlaces((prevPlaces) =>
+      prevPlaces.filter((place) => place.id !== deletedId)
+    );
+  };
+
+  return (
+    <React.Fragment>
+      <ErrorModal error={errorMessage} onClear={errorHandler} />
+      {loading && (
+        <div className='center'>
+          <LoadingSpinner asOverlay />
+        </div>
+      )}
+      {!loading && places && (
+        <PlaceList items={places} onDeletePlace={placeDeletedHandler} />
+      )}
+      ;
+    </React.Fragment>
+  );
 };
 
 export default UserPlaces;

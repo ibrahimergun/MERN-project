@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect} from 'react';
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import ErrorModal from '../../shared/components/UIElements/ErrorModal';
 import { useHttpClient } from '../../shared/hook/http-hook';
@@ -7,7 +7,8 @@ import UsersList from '../components/UsersList';
 
 const Users = () => {
   const { sendRequest, errorHandler, loading, errorMessage, resData } =
-    useHttpClient();
+  useHttpClient();
+  const loadedDatas = resData.users;
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -26,7 +27,7 @@ const Users = () => {
     <React.Fragment>
       <ErrorModal error={errorMessage} onClear={errorHandler} />
       {loading && <LoadingSpinner asOverlay />}
-      {!loading && resData && <UsersList items={resData} />}
+      {!loading && loadedDatas && <UsersList items={loadedDatas} />}
     </React.Fragment>
   );
 };

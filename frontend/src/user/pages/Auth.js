@@ -23,7 +23,6 @@ const Auth = () => {
 
   const { login } = useContext(LoginContext);
   const [isLoginMode, setIsLoginMode] = useState(true);
-
   const [formState, inputHandler, setData] = useForm(
     {
       email: {
@@ -59,7 +58,6 @@ const Auth = () => {
         false,
       );
     }
-    console.log(formState);
     setIsLoginMode((prevMode) => !prevMode);
   };
 
@@ -75,13 +73,17 @@ const Auth = () => {
           password: formState.inputs.password.value,
         },
         {
-          headers: {
-            'content-type': 'application/json',
-          },
+          'content-type': 'application/json',
         },
       )
-        .then(successfulResponse)
+        .then(succesfullResponse)
         .catch(error);
+
+      function succesfullResponse(responseData) {
+        login(responseData.user);
+        history.push('/');
+      }
+      function error(error) {}
     } else {
       await sendRequest(
         'http://localhost:5000/api/users/signup',
@@ -91,23 +93,20 @@ const Auth = () => {
           email: formState.inputs.email.value,
           password: formState.inputs.password.value,
         },
+
         {
-          headers: {
-            'content-type': 'application/json',
-          },
+          'content-type': 'application/json',
         },
       )
-        .then(successfulResponse)
+        .then(succesfullResponse)
         .catch(error);
+      function succesfullResponse(responseData) {
+        login(responseData.user._id);
+        history.push('/');
+      }
+      function error(error) {}
     }
-
-    function successfulResponse(response) {
-      login();
-      history.push('/');
-    }
-    function error(error) {}
   };
-
   return (
     <React.Fragment>
       <ErrorModal error={errorMessage} onClear={errorHandler} />

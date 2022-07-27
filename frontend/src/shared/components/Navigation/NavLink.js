@@ -5,7 +5,7 @@ import './NavLink.css';
 import LoginContext from '../../context/Login-Context';
 
 const NavLinks = (props) => {
-  let { isLoggedIn, logout } = useContext(LoginContext);
+  let { isLoggedIn, logout, uid } = useContext(LoginContext);
 
   const logoutHandler = () => {
     logout();
@@ -20,7 +20,7 @@ const NavLinks = (props) => {
       </li>
       {isLoggedIn && (
         <li>
-          <NavLink to='/u1/places'>My Places</NavLink>
+          <NavLink to={`/${uid}/places/`}>My Places</NavLink>
         </li>
       )}
       {isLoggedIn && (

@@ -122,7 +122,7 @@ const updatePlaceById = async (req, res, next) => {
   }
 
   const placeId = req.params.pid;
-  const { title, description, address } = req.body;
+  const { title, description} = req.body;
   let updatedPlace;
 
   try {
@@ -137,7 +137,7 @@ const updatePlaceById = async (req, res, next) => {
 
   updatedPlace.title = title;
   updatedPlace.description = description;
-  updatedPlace.address = address;
+  
 
   try {
     await updatedPlace.save();
@@ -154,6 +154,7 @@ const updatePlaceById = async (req, res, next) => {
 
 const deletePlaceId = async (req, res, next) => {
   const placeId = req.params.pid;
+  console.log(req);
   let removedPlace, place;
 
   try {

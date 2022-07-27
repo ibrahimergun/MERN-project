@@ -96,7 +96,7 @@ const login = async (req, res, next) => {
     );
   }
 
-  res.json({ message: 'Logged In' });
+  res.json({ message: 'Logged In' , user: checkUserEmail.id});
 };
 
 exports.getUsers = getUsers;

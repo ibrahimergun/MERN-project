@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useContext, useState } from 'react';
+import { useParams, useHistory } from 'react-router-dom';
 import {
   VALIDATOR_REQUIRE,
   VALIDATOR_MINLENGTH,
@@ -8,36 +8,20 @@ import Button from '../../shared/components/FormElements/Button';
 import Input from '../../shared/components/FormElements/Input';
 import { useForm } from '../../shared/hook/form-hook';
 import Card from '../../shared/components/UIElements/Card';
+import LoginContext from '../../shared/context/Login-Context';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import { useHttpClient } from '../../shared/hook/http-hook';
+
 import './PlaceForm.css';
 
-const DUMMY_DATAS = [
-  {
-    id: 'p1',
-    title: 'Empire State Building',
-    description: 'One of the most famous sky scrapers in the world!',
-    imageUrl: 'https://picsum.photos/500/300',
-    address: 'Kale Mah. 1. Meram Sok. No:12/2 Corum/Merkez 19100',
-    // coordinates: {
-    //   lat: 40.7484405,
-    //   lng: -73.9878584,
-    // },
-    creatorID: 'u1',
-  },
-  {
-    id: 'p1',
-    title: 'Empire State Building',
-    description: 'One of the most famous sky scrapers in the world!',
-    imageUrl: 'https://picsum.photos/501/300',
-    address: '20 W 34th St, New York, NY 10001',
-    // coordinates: {
-    //   lat: 40.7484405,
-    //   lng: -73.9878584,
-    // },
-    creatorID: 'u2',
-  },
-];
-
 const UpdatePlace = () => {
+  const history = useHistory();
+  const auth = useContext(LoginContext);
+
+  const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
+  const [loadedPlace, setLoadedPlace] = useState();
+
   const [formState, inputHandler, setData] = useForm(
     {
       title: {
@@ -51,43 +35,67 @@ const UpdatePlace = () => {
     },
     false,
   );
-  const [loading, setLoading] = useState(true);
+
   const placeId = useParams().PlaceId;
-  const placeData = DUMMY_DATAS.find((place) => place.id === placeId);
 
   useEffect(() => {
-    if (placeData) {
-      setData(
-        {
-          title: {
-            value: placeData.title,
-            isValid: true,
+    const fetchPlace = async () => {
+      try {
+        const responseData = await sendRequest(
+          'http://localhost:5000/api/places/' + placeId,
+        );
+        setLoadedPlace(responseData);
+        setData(
+          {
+            title: {
+              value: responseData.title,
+              isValid: true,
+            },
+            description: {
+              value: responseData.description,
+              isValid: true,
+            },
           },
-          description: {
-            value: placeData.description,
-            isValid: true,
-          },
-        },
-        true,
-      );
-    }
-    setLoading(false);
-  }, [placeData, setData]);
+          true,
+        );
+      } catch (error) {}
+    };
+    fetchPlace();
+  }, [placeId, sendRequest, setData]);
 
-  const updateSubmitHandler = (event) => {
+  const updateSubmitHandler = async (event) => {
     event.preventDefault();
-    console.log(formState.inputs);
+    await sendRequest(
+      'http://localhost:5000/api/places/' + placeId,
+      'PATCH',
+      {
+        title: formState.inputs.title.value,
+        description: formState.inputs.description.value,
+      },
+      {
+        'content-type': 'application/json'
+      },
+    )
+      .then(successfulResponse)
+      .catch(error);
+
+    function successfulResponse(response) {
+      history.push('/' + auth.uid + '/places');
+    }
+    function error(error) {
+      console.log(error);
+    }
   };
 
   if (loading) {
     return (
       <div className='center'>
-        <h2> Loading...</h2>
+        <LoadingSpinner />
       </div>
     );
   }
 
-  if (!placeData) {
+  if (!loadedPlace && !errorMessage) {
     return (
       <div className='center'>
         <Card>
@@ -96,33 +104,39 @@ const UpdatePlace = () => {
       </div>
     );
   }
+
   return (
-    <form className='place-form' onSubmit={updateSubmitHandler}>
-      <Input
-        id='title'
-        element='input'
-        type='text'
-        label='Title'
-        validators={[VALIDATOR_REQUIRE()]}
-        errorText='Please enter a valid title.'
-        onInput={inputHandler}
-        value={formState.inputs.title.value}
-        valid={formState.inputs.title.isValid}
-      />
-      <Input
-        id='description'
-        element='textarea'
-        label='Description'
-        validators={[VALIDATOR_MINLENGTH(5)]}
-        errorText='Please enter a valid description (min. 5 characters).'
-        onInput={inputHandler}
-        value={formState.inputs.description.value}
-        valid={formState.inputs.description.isValid}
-      />
-      <Button type='submit' disabled={!formState.isValid}>
-        UPDATE PLACE
-      </Button>
-    </form>
+    <React.Fragment>
+      <ErrorModal error={errorMessage} onClear={errorHandler} />
+      {!loading && loadedPlace && (
+        <form className='place-form' onSubmit={updateSubmitHandler}>
+          <Input
+            id='title'
+            element='input'
+            type='text'
+            label='Title'
+            validators={[VALIDATOR_REQUIRE()]}
+            errorText='Please enter a valid title.'
+            onInput={inputHandler}
+            value={loadedPlace.title}
+            valid={true}
+          />
+          <Input
+            id='description'
+            element='textarea'
+            label='Description'
+            validators={[VALIDATOR_MINLENGTH(5)]}
+            errorText='Please enter a valid description (min. 5 characters).'
+            onInput={inputHandler}
+            value={loadedPlace.description}
+            valid={true}
+          />
+          <Button type='submit' disabled={!formState.isValid}>
+            UPDATE PLACE
+          </Button>
+        </form>
+      )}
+    </React.Fragment>
   );
 };
 export default UpdatePlace;

@@ -4,8 +4,7 @@ import axios from 'axios';
 export const useHttpClient = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState();
-  const [resData , setResData] = useState([]);
-
+  const [resData, setResData] = useState([]);
   const activeHttpRequests = useRef([]);
 
   const sendRequest = useCallback(
@@ -15,25 +14,23 @@ export const useHttpClient = () => {
       const httpAbortCtrl = new AbortController();
       activeHttpRequests.current.push(httpAbortCtrl);
 
-      await axios(url, {
-        method: method,
-        data: body,
-        headers: headers,
-        signal: httpAbortCtrl.signal,
-      })
-        .then(successfulResponse)
-        .catch(error);
+      try {
+        const response = await axios(url, {
+          method: method,
+          data: body,
+          headers: headers,
+          signal: httpAbortCtrl.signal,
+        });
 
-      function successfulResponse(response) {
-        const responseData = response.data;
+        const responseData = await response.data;
         activeHttpRequests.current = activeHttpRequests.current.filter(
           (reqCtrl) => reqCtrl !== httpAbortCtrl,
         );
         setLoading(false);
-        setResData(responseData.users);
-        //return responseData;
-      }
-      function error(err) {
+        setResData(responseData);
+        return responseData;
+      
+      } catch (err) {
         setErrorMessage(
           err.response.data.message + ' ' + err.response.status ||
             'Something went wrong, please try again.',

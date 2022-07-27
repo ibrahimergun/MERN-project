@@ -1,14 +1,20 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
+import {useHistory } from 'react-router-dom';
 
 import Card from '../../shared/components/UIElements/Card.js';
 import Button from '../../shared/components/FormElements/Button.js';
 import Modal from '../../shared/components/UIElements/Modal.js';
 import Map from '../../shared/components/UIElements/Map.js';
 import LoginContext from '../../shared/context/Login-Context.js';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import { useHttpClient } from '../../shared/hook/http-hook';
+
 import './PlaceItem.css';
 
 const PlaceItem = (props) => {
-  let { isLoggedIn } = useContext(LoginContext);
+  const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
+  let { isLoggedIn, uid } = useContext(LoginContext);
 
   const [showMap, setShowMap] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -34,9 +40,25 @@ const PlaceItem = (props) => {
     setShowConfirmModal(false);
   };
 
-  const confirmDeleteHandler = () => {
+  const history = useHistory();
+
+  const confirmDeleteHandler = async (event) => {
+    event.preventDefault();
     setShowConfirmModal(false);
-    console.log('deleting...');
+    await sendRequest('http://localhost:5000/api/places/' + props.id, 'DELETE', {
+      'content-type': 'application/json',
+    })
+      .then(successfulResponse)
+      .catch(error);
+
+    function successfulResponse(response) {
+      console.log('deleted');
+      history.push('/' + uid + '/places');
+      props.onDelete(props.id);
+    }
+    function error(error) {
+      console.log(error);
+    }
   };
 
   const changeHandler = (event) => {
@@ -51,9 +73,19 @@ const PlaceItem = (props) => {
     return () => clearTimeout(timer);
   }, [changed]);
 
+  if (loading) {
+    return (
+      <div className='center'>
+        <LoadingSpinner asOverlay/>
+      </div>
+    );
+  };
+
   return (
     <React.Fragment>
-      <Modal
+    <ErrorModal error={errorMessage} onClear={errorHandler} />
+
+    <Modal
         show={showMap}
         onCancel={closeMapHandler}
         header={address}
@@ -123,7 +155,7 @@ const PlaceItem = (props) => {
             )}
           </div>
         </Card>
-      </li>
+      </li> 
     </React.Fragment>
   );
 };
