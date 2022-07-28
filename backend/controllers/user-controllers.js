@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const user = require('../models/user');
+const bcrypt = require('bcrypt');
 
 const httpError = require('../models/http-error');
 
@@ -27,7 +28,18 @@ const signup = async (req, res, next) => {
     );
   }
 
-  const { name, email, password} = req.body;
+  const { name, email, password } = req.body;
+
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    const error = new httpError(
+      'Signing up failed, please try again later.',
+      500,
+    );
+    return next(error);
+  }
 
   const hasEmail = await user.findOne({ email: email });
 
@@ -42,7 +54,7 @@ const signup = async (req, res, next) => {
   const createUser = new user({
     name,
     email,
-    password,
+    password: hashedPassword,
     places: [],
     imageUrl: req.file.path,
   });
@@ -85,18 +97,20 @@ const login = async (req, res, next) => {
     return next(error);
   }
 
-  const validity =await user.findOne({ email: email });
+  const validity = await user.findOne({ email: email });
 
-  if (!validity || validity.password !== password) {
-    return next(
-      new httpError(
-        'Could not identify user, credentials seem to be wrong.',
-        401,
-      ),
+  const checkResult = await bcrypt.compare(password, validity.password);
+  console.log(checkResult);
+
+  if (!checkResult) {
+    const error = new httpError(
+      'Signing in failed, invalid credentials. (P)',
+      500,
     );
+    return next(error);
   }
 
-  res.json({ message: 'Logged In' , user: checkUserEmail.id});
+  res.json({ message: 'Logged In', user: checkUserEmail.id });
 };
 
 exports.getUsers = getUsers;
