@@ -62,7 +62,7 @@ const postUserByUserId = async (req, res, next) => {
     );
   }
 
-  const { title, description, address, creator } = req.body;
+  const { title, description, address } = req.body;
 
   let coordinates;
   try {
@@ -77,12 +77,12 @@ const postUserByUserId = async (req, res, next) => {
     location: coordinates,
     imageUrl: req.file.path,
     address,
-    creator,
+    creator: req.userData.userId,
   });
 
   let user;
   try {
-    user = await User.findById(creator);
+    user = await User.findById(req.userData.userId);
   } catch (err) {
     const error = new httpError(
       'Creating place failed, please try again later',
@@ -123,7 +123,7 @@ const updatePlaceById = async (req, res, next) => {
   }
 
   const placeId = req.params.pid;
-  const { title, description, address } = req.body;
+  const { title, description } = req.body;
   let updatedPlace;
 
   try {
@@ -138,7 +138,6 @@ const updatePlaceById = async (req, res, next) => {
 
   updatedPlace.title = title;
   updatedPlace.description = description;
-  updatedPlace.address = address;
 
   try {
     await updatedPlace.save();
@@ -148,6 +147,10 @@ const updatePlaceById = async (req, res, next) => {
       500,
     );
     return next(error);
+  }
+
+  if (updatedPlace.creator.toString() !== req.userData.userId) {
+    return next(new httpError('You are not allowed to edit this place.', 401));
   }
 
   res.status(200).json({ place: updatedPlace.toObject({ getters: true }) });
@@ -171,9 +174,15 @@ const deletePlaceId = async (req, res, next) => {
     const error = new httpError('Could not find place for provided id', 404);
     return next(error);
   }
-
   const imagePath = place.imageUrl;
-  
+
+
+  if (place.creator.id.toString() !== req.userData.userId) {
+    return next(
+      new httpError('You are not allowed to delete this place.', 403),
+    );
+  }
+
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -184,11 +193,11 @@ const deletePlaceId = async (req, res, next) => {
   } catch (err) {
     const error = new httpError('Could not delete.Something went wrong', 500);
     return next(error);
-  };
+  }
 
   //Unlink equalto Delete or Remove
   fs.unlink(imagePath, (error) => {});
-  
+
   res
     .status(200)
     .json({ message: 'Deleted place.', removedData: removedPlace });

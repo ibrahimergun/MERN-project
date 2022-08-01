@@ -17,7 +17,7 @@ import {
 } from '../../shared/util/validators';
 
 const NewPlace = () => {
-  const { uid } = useContext(LoginContext);
+  const { token } = useContext(LoginContext);
 
   const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
   const history = useHistory();
@@ -42,7 +42,7 @@ const NewPlace = () => {
     },
     false,
   );
-
+  
   const submitHandler = async (event) => {
     event.preventDefault();
     const formData = new FormData();
@@ -50,9 +50,12 @@ const NewPlace = () => {
     formData.append('description', formState.inputs.description.value);
     formData.append('address', formState.inputs.address.value);
     formData.append('image', formState.inputs.image.value);
-    formData.append('creator', uid);
+    //formData.append('creator', uid);
 
-    await sendRequest('http://localhost:5000/api/places/', 'POST', formData)
+    await sendRequest('http://localhost:5000/api/places/', 'POST', formData, {
+      Authorization: 'Bearer ' + token, // with token split
+      //Authorization: token, // without token split
+    })
       .then(successfulResponse)
       .catch(error);
 

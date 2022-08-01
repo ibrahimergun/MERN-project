@@ -14,7 +14,7 @@ import './PlaceItem.css';
 
 const PlaceItem = (props) => {
   const { sendRequest, errorHandler, loading, errorMessage } = useHttpClient();
-  let { uid } = useContext(LoginContext);
+  let { uid, token } = useContext(LoginContext);
 
   const [showMap, setShowMap] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -48,15 +48,15 @@ const PlaceItem = (props) => {
     await sendRequest(
       'http://localhost:5000/api/places/' + props.id,
       'DELETE',
+      '',
       {
-        'content-type': 'application/json',
+        Authorization: 'Bearer ' + token,
       },
     )
       .then(successfulResponse)
       .catch(error);
 
     function successfulResponse(response) {
-      console.log('deleted');
       history.push('/' + uid + '/places');
       props.onDelete(props.id);
     }

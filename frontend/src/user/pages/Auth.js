@@ -78,15 +78,15 @@ const Auth = () => {
           email: formState.inputs.email.value,
           password: formState.inputs.password.value,
         },
-        {
-          'content-type': 'application/json',
-        },
+        // {
+        //   'content-type': 'application/json',
+        // },
       )
         .then(succesfullResponse)
         .catch(error);
 
       function succesfullResponse(responseData) {
-        login(responseData.user);
+        login(responseData.userId , responseData.token);
         history.push('/');
       }
       function error(error) {}
@@ -105,7 +105,7 @@ const Auth = () => {
         .then(succesfullResponse)
         .catch(error);
       function succesfullResponse(responseData) {
-        login(responseData.user._id);
+        login(responseData.userId,  responseData.token);
         history.push('/');
       }
       function error(error) {}

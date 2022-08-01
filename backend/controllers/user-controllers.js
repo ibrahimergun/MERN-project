@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const user = require('../models/user');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const httpError = require('../models/http-error');
 
@@ -65,7 +66,21 @@ const signup = async (req, res, next) => {
     const error = new httpError('Creating user failed, please try again.', 500);
     return next(error);
   }
-  res.status(201).json({ user: createUser });
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: createUser.id, email: createUser.email },
+      'please dont share this key',
+      { expiresIn: '1h' },
+    );
+  } catch (err) {
+    const error = new httpError('Sign Up failed, please try again later', 500);
+    next(error);
+  }
+  res
+    .status(201)
+    .json({ userId: createUser.id, email: createUser.email, token: token });
 };
 
 const login = async (req, res, next) => {
@@ -83,13 +98,13 @@ const login = async (req, res, next) => {
     );
   }
 
-  let checkUserEmail;
+  let hasLoginUser;
   try {
-    checkUserEmail = await user.findOne({ email: email });
+    hasLoginUser = await user.findOne({ email: email });
   } catch (err) {
     return next(new httpError('Please try again later', 500));
   }
-  if (!checkUserEmail) {
+  if (!hasLoginUser) {
     const error = new httpError(
       'Could not find the user, you must firsty Signup.',
       422,
@@ -100,7 +115,6 @@ const login = async (req, res, next) => {
   const validity = await user.findOne({ email: email });
 
   const checkResult = await bcrypt.compare(password, validity.password);
-  console.log(checkResult);
 
   if (!checkResult) {
     const error = new httpError(
@@ -110,7 +124,23 @@ const login = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({ message: 'Logged In', user: checkUserEmail.id });
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: hasLoginUser.id, email: hasLoginUser.email },
+      'please dont share this key',
+      { expiresIn: '1h' },
+    );
+  } catch (err) {
+    const error = new httpError('Sign Up failed, please try again later', 500);
+    next(error);
+  }
+
+  res.status(201).json({
+    email: hasLoginUser.email,
+    token: token,
+    userId: hasLoginUser.id,
+  });
 };
 
 exports.getUsers = getUsers;

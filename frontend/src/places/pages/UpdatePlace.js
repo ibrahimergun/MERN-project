@@ -73,7 +73,8 @@ const UpdatePlace = () => {
         description: formState.inputs.description.value,
       },
       {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        Authorization: 'Bearer ' + auth.token,
       },
     )
       .then(successfulResponse)
