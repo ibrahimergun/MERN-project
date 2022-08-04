@@ -5,7 +5,7 @@ import './Map.css';
 
 const Map = (props) => {
   const mapRef = React.useRef();
-  const API_KEY = 'AIzaSyDqTdWndNmtA1K5qd-phcMkZEgzRtZWY6U';
+  const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
 
   useEffect(() => {
     axios
@@ -36,7 +36,7 @@ const Map = (props) => {
       .catch((err) => {
         console.log(err);
       });
-  }, [props.address, props.center, props.zoom]);
+  }, [API_KEY, props.address, props.center, props.zoom]);
 
   return (
     <div ref={mapRef} className={`map ${props.className}`} style={props.style}>

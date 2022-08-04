@@ -42,7 +42,7 @@ const UpdatePlace = () => {
     const fetchPlace = async () => {
       try {
         const responseData = await sendRequest(
-          'http://localhost:5000/api/places/' + placeId,
+          process.env.REACT_APP_BACKEND_URL + '/places/' + placeId,
         );
         setLoadedPlace(responseData);
         setData(
@@ -66,7 +66,7 @@ const UpdatePlace = () => {
   const updateSubmitHandler = async (event) => {
     event.preventDefault();
     await sendRequest(
-      'http://localhost:5000/api/places/' + placeId,
+      process.env.REACT_APP_BACKEND_URL +'/places/' + placeId,
       'PATCH',
       {
         title: formState.inputs.title.value,
