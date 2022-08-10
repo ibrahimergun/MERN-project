@@ -34,7 +34,6 @@ const Map = (props) => {
         });
       })
       .catch((err) => {
-        console.log(err);
       });
   }, [API_KEY, props.address, props.center, props.zoom]);
 
