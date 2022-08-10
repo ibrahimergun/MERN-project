@@ -1,9 +1,0 @@
-{
-  "env": {
-    "DB_USER": "ibrahim",
-    "DB_PASSWORD": "Ibrahim19.",
-    "DB_NAME": "Places",
-    "GOOGLE_API_KEY": "AIzaSyDqTdWndNmtA1K5qd-phcMkZEgzRtZWY6U",
-    "JWT_KEY": "please dont share this key"
-  }
-}
